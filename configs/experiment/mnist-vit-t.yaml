@@ -5,30 +5,29 @@
 
 defaults:
   - override /data: mnist
-  - override /model: mnist
+  - override /model: vit-t
   - override /callbacks: default
   - override /trainer: default
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["mnist", "simple_dense_net"]
+tags: ["mnist"]
 
-seed: 12345
+seed: 0
 
 trainer:
-  min_epochs: 10
+  min_epochs: 2
   max_epochs: 10
-  gradient_clip_val: 0.5
 
 model:
+  num_classes: 10
   optimizer:
     lr: 0.002
   net:
-    lin1_size: 128
-    lin2_size: 256
-    lin3_size: 64
-  compile: false
+    image_size: 28
+    patch_size: 14
+    num_classes: 10
 
 data:
   batch_size: 64
@@ -36,6 +35,8 @@ data:
 logger:
   wandb:
     tags: ${tags}
-    group: "mnist"
+    group: "tests"
+    project: "pit-experiments"
+    entity: "iexai"
   aim:
-    experiment: "mnist"
+    experiment: "pit-experiments/tests"
