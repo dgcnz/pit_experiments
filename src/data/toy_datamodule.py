@@ -1,16 +1,21 @@
 import lightning as L
 import torch
+from torch import Tensor
 from torch.utils.data import random_split, DataLoader, Dataset
+from typing import Callable
 
 
 # TODO: Make sure that all samples are unique.
 class ToyDataset(Dataset):
-    def __init__(self, target_fn, num_samples=10000, width=8, height=8):
+    # target_fn outputs torch tensor
+    def __init__(self, target_fn: Callable[[Tensor], Tensor], num_samples=10000, width=8, height=8):
         self.width = width
         self.height = height
 
         self.inputs = torch.randint(0, 2, (num_samples, self.width, self.height))
         self.targets = target_fn(self.inputs)
+        self.inputs = self.inputs.unsqueeze(1).float()
+        self.targets = self.targets.unsqueeze(1).float()
 
     def __getitem__(self, index):
         return self.inputs[index], self.targets[index]
@@ -21,7 +26,12 @@ class ToyDataset(Dataset):
 
 class ToyDataModule(L.LightningDataModule):
     def __init__(
-        self, target_fn, batch_size: int = 32, num_samples=10000, width=8, height=8
+        self,
+        target_fn,
+        batch_size: int = 32,
+        num_samples: int = 10000,
+        width: int = 8,
+        height: int = 8,
     ):
         super().__init__()
         self.batch_size = batch_size

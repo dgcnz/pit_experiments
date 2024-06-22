@@ -1,0 +1,54 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: toy_mirror
+  - override /model: pit_serghei_grid
+  - override /callbacks: default
+  - override /trainer: default
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+tags: ["toy_mirror"]
+
+seed: 0
+
+trainer:
+  min_epochs: 2
+  max_epochs: 100
+
+model:
+  optimizer:
+    # grokking paper config
+    _target_: torch.optim.AdamW
+    _partial_: true
+    lr: 0.001
+    weight_decay: 1.0
+    betas:
+      - 0.9
+      - 0.98
+  net:
+    img_width: 8
+    img_height: 8
+    num_blocks: 4
+    embed_dim: 8
+    nhead: 4
+    dim_feedforward: 8
+
+
+
+data:
+  batch_size: 32
+
+# deactivate logger for small experiments
+# logger:
+#   wandb:
+#     tags: ${tags}
+#     group: "tests"
+#     project: "pit-experiments"
+#     entity: "iexai"
+#   aim:
+#     experiment: "pit-experiments/tests"

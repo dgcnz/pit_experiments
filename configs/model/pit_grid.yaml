@@ -1,0 +1,14 @@
+_target_: src.models.binary_grid_module.BinaryGridLightningModule
+
+net:
+  _target_: src.models.components.pixel_transformer.PixelTransformer
+  img_size: null
+  embed_dim: null
+  depth: null
+  num_heads: null
+
+
+optimizer: null
+scheduler: null
+# compile model for faster training with pytorch 2.0
+compile: false

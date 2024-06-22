@@ -1,0 +1,19 @@
+_target_: src.models.binary_grid_module.BinaryGridLightningModule
+
+net:
+  _target_: src.models.components.toy_vit_module.ToyViT
+  img_width: null
+  img_height: null
+  num_blocks: null
+  embed_dim: null
+  nhead: null
+  dim_feedforward: null
+
+
+
+
+
+optimizer: null
+scheduler: null
+# compile model for faster training with pytorch 2.0
+compile: false

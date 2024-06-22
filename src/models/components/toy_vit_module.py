@@ -38,7 +38,6 @@ class ToyViT(torch.nn.Module):
         )
 
         self.fc = nn.Linear(in_features=self.embed_dim, out_features=1)
-        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         input_shape = x.shape
@@ -61,7 +60,7 @@ class ToyViT(torch.nn.Module):
         # Get representations per token, excluding the CLS token
         token_representations = x[:, 1:, :]
 
-        predictions = self.sigmoid(self.fc(token_representations))
+        predictions = self.fc(token_representations)
 
         # Reshape predictions back to original shape
         predictions = predictions.reshape(input_shape)

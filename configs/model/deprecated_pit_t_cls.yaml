@@ -16,8 +16,8 @@ scheduler:
 net:
   _target_: torchvision.models.VisionTransformer
   num_classes: null
-  patch_size: 16 # must be a divisor of image_size
-  num_layers: 12
+  patch_size: 1 # must be a divisor of image_size
+  num_layers: 4
   num_heads: 12
   hidden_dim: 192
   mlp_dim: 768
