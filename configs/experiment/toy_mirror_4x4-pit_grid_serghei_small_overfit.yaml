@@ -19,7 +19,7 @@ seed: 0
 trainer:
   min_epochs: 2
   max_epochs: 400
-  overfit_batches: 3
+  # overfit_batches: 3
 
 model:
   optimizer:
