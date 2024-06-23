@@ -1,0 +1,11 @@
+_target_: src.data.toy_datamodule.ToyDataModule
+batch_size: 32 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+num_samples: 10000
+width: 4
+height: 4
+target_fn:
+  _target_: torch.flip
+  _partial_: true
+  _convert_: all
+  dims:
+    - 2

@@ -1,0 +1,10 @@
+_target_: src.data.toy_datamodule.ToyDataModule
+batch_size: 32 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+num_samples: 10000
+width: 8
+height: 8
+target_fn:
+  _target_: torch.clamp
+  _partial_: true
+  min: 1
+  max: 1
