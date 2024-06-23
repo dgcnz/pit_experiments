@@ -5,6 +5,11 @@ from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric
 from torchmetrics.classification.accuracy import BinaryAccuracy
 import matplotlib.pyplot as plt
+from src.utils.grokfast import gradfilter_ma, gradfilter_ema
+from collections import namedtuple
+from typing import Optional
+
+GrokFastParams = namedtuple("GrokFastParams", ["alpha", "lamb"])
 
 
 class BinaryGridLightningModule(LightningModule):
@@ -15,6 +20,7 @@ class BinaryGridLightningModule(LightningModule):
         scheduler: torch.optim.lr_scheduler,
         compile: bool,
         lr_scheduler_interval: str = "epoch",
+        grokfast_params: Optional[GrokFastParams] = None,
     ) -> None:
         """Initialize a `pl_classifier`.
 
@@ -50,6 +56,9 @@ class BinaryGridLightningModule(LightningModule):
 
         # for tracking best so far validation accuracy
         self.val_acc_best = MaxMetric()
+        if grokfast_params is not None:
+            self.automatic_optimization = False
+            self.gf_grads = None
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """Perform a forward pass through the model `self.net`.
@@ -95,7 +104,28 @@ class BinaryGridLightningModule(LightningModule):
         :param batch_idx: The index of the current batch.
         :return: A tensor of losses between model predictions and targets.
         """
+        if self.hparams.grokfast_params is not None:
+            opt = self.optimizers()
+            opt.zero_grad()
         loss, preds, targets = self.model_step(batch)
+        self.last_train_step = {
+            "batch": batch,
+            "loss": loss,
+            "preds": preds,
+            "targets": targets,
+        }
+        if self.hparams.grokfast_params is not None:
+            self.manual_backward(loss)
+            self.gf_grads = gradfilter_ema(
+                self.net,
+                grads=self.gf_grads,
+                alpha=self.hparams.grokfast_params.alpha,
+                lamb=self.hparams.grokfast_params.lamb,
+            )
+            opt.step()
+            # single scheduler
+            sch = self.lr_schedulers()
+            sch.step()
 
         # update and log metrics
         self.train_loss(loss)
@@ -112,7 +142,12 @@ class BinaryGridLightningModule(LightningModule):
 
     def on_train_epoch_end(self) -> None:
         "Lightning hook that is called when a training epoch ends."
-        pass
+        fig = self.plot_predictions(
+            *self.last_train_step["batch"], preds=self.last_train_step["preds"]
+        )
+        self.logger.experiment.add_figure(
+            "train/predictions", fig, global_step=self.current_epoch
+        )
 
     def validation_step(
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
@@ -146,21 +181,28 @@ class BinaryGridLightningModule(LightningModule):
         self.log(
             "val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True
         )
+        fig = self.plot_predictions(
+            *self.last_val_step["batch"], preds=self.last_val_step["preds"]
+        )
+        self.logger.experiment.add_figure(
+            "val/predictions", fig, global_step=self.current_epoch
+        )
+
+    def plot_predictions(self, x: torch.Tensor, y: torch.Tensor, preds: torch.Tensor):
         fig, axes = plt.subplots(4, 3)
-        x, y = self.last_val_step["batch"]
-        preds = self.last_val_step["preds"]
         for i in range(4):
             axes[i, 0].imshow(x[i, 0].cpu(), cmap="gray")
             axes[i, 1].imshow(preds[i][0].cpu().detach().numpy(), cmap="gray")
             axes[i, 2].imshow(y[i, 0].cpu(), cmap="gray")
+            # title
+            axes[i, 0].set_title("Input")
+            axes[i, 1].set_title("Prediction")
+            axes[i, 2].set_title("Target")
             axes[i, 0].axis("off")
             axes[i, 1].axis("off")
             axes[i, 2].axis("off")
         fig.tight_layout()
-        # log image
-        self.logger.experiment.add_figure(
-            "val/predictions", fig, global_step=self.current_epoch
-        )
+        return fig
 
     def test_step(
         self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
