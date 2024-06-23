@@ -4,9 +4,9 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: toy_mirror_4x4
+  - override /data: toy_mirror
   - override /model: pit_serghei_grid
-  - override /callbacks: grokking
+  - override /callbacks: [grokking] #, early_stopping]
   - override /trainer: default
 
 # all parameters below will be merged with parameters from default configurations set above
@@ -25,7 +25,9 @@ model:
     # grokking paper config
     _target_: torch.optim.SGD
     _partial_: true
-    lr: 0.001
+    lr: 0.3
+    # weight_decay: 1
+
   # optimizer:
   #   # grokking paper config
   #   _target_: torch.optim.AdamW
@@ -41,16 +43,23 @@ model:
     _partial_: true
     warmup_steps: 10
   net:
-    img_width: 4
-    img_height: 4
-    num_blocks: 16
-    embed_dim: 16
-    nhead: 16
+    img_width: 8
+    img_height: 8
+    # num_blocks: 10
+    # embed_dim: 64
+    # nhead: 8
+    # dim_feedforward: 256
+    num_blocks: 8
+    embed_dim: 2
+    nhead: 2
     dim_feedforward: 64
   lr_scheduler_interval: "step"
 
 data:
   batch_size: 64
+  num_samples: 100000
+  width: 8
+  height: 8
 # deactivate logger for small experiments
 # logger:
 #   wandb:
