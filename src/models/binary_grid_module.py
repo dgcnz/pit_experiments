@@ -3,7 +3,8 @@ from typing import Any, Dict, Tuple
 import torch
 from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric
-from torchmetrics.classification.accuracy import Accuracy, BinaryAccuracy
+from torchmetrics.classification.accuracy import BinaryAccuracy
+import matplotlib.pyplot as plt
 
 
 class BinaryGridLightningModule(LightningModule):
@@ -13,6 +14,7 @@ class BinaryGridLightningModule(LightningModule):
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
         compile: bool,
+        lr_scheduler_interval: str = "epoch",
     ) -> None:
         """Initialize a `pl_classifier`.
 
@@ -116,6 +118,12 @@ class BinaryGridLightningModule(LightningModule):
         :param batch_idx: The index of the current batch.
         """
         loss, preds, targets = self.model_step(batch)
+        self.last_val_step = {
+            "batch": batch,
+            "loss": loss,
+            "preds": preds,
+            "targets": targets,
+        }
 
         # update and log metrics
         self.val_loss(loss)
@@ -130,6 +138,19 @@ class BinaryGridLightningModule(LightningModule):
         # log `val_acc_best` as a value through `.compute()` method, instead of as a metric object
         # otherwise metric would be reset by lightning after each epoch
         self.log("val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True)
+        fig, axes = plt.subplots(4, 3)
+        x, y = self.last_val_step["batch"]
+        preds = self.last_val_step["preds"]
+        for i in range(4):
+            axes[i, 0].imshow(x[i, 0], cmap='gray')
+            axes[i, 1].imshow(preds[i][0].detach().numpy(), cmap='gray')
+            axes[i, 2].imshow(y[i, 0], cmap='gray')
+            axes[i, 0].axis('off')
+            axes[i, 1].axis('off')
+            axes[i, 2].axis('off')
+        fig.tight_layout()
+        # log image
+        self.logger.experiment.add_figure("val/predictions", fig, global_step=self.current_epoch)
 
     def test_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> None:
         """Perform a single test step on a batch of data from the test set.
@@ -160,7 +181,7 @@ class BinaryGridLightningModule(LightningModule):
                 "lr_scheduler": {
                     "scheduler": scheduler,
                     "monitor": "val/loss",
-                    "interval": "epoch",
+                    "interval": self.hparams.lr_scheduler_interval,
                     "frequency": 1,
                 },
             }

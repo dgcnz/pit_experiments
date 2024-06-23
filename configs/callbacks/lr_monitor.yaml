@@ -1,0 +1,5 @@
+lr_monitor:
+  _target_: lightning.pytorch.callbacks.LearningRateMonitor
+  logging_interval: "epoch" # "step" or "epoch"
+  log_momentum: False # whether to log the momentum
+  log_weight_decay: True # whether to log the weight decay
