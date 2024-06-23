@@ -100,8 +100,12 @@ class BinaryGridLightningModule(LightningModule):
         # update and log metrics
         self.train_loss(loss)
         self.train_acc(preds, targets)
-        self.log("train/loss", self.train_loss, on_step=False, on_epoch=True, prog_bar=True)
-        self.log("train/acc", self.train_acc, on_step=False, on_epoch=True, prog_bar=True)
+        self.log(
+            "train/loss", self.train_loss, on_step=False, on_epoch=True, prog_bar=True
+        )
+        self.log(
+            "train/acc", self.train_acc, on_step=False, on_epoch=True, prog_bar=True
+        )
 
         # return loss or backpropagation will fail
         return loss
@@ -110,7 +114,9 @@ class BinaryGridLightningModule(LightningModule):
         "Lightning hook that is called when a training epoch ends."
         pass
 
-    def validation_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> None:
+    def validation_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
+    ) -> None:
         """Perform a single validation step on a batch of data from the validation set.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target
@@ -137,22 +143,28 @@ class BinaryGridLightningModule(LightningModule):
         self.val_acc_best(acc)  # update best so far val acc
         # log `val_acc_best` as a value through `.compute()` method, instead of as a metric object
         # otherwise metric would be reset by lightning after each epoch
-        self.log("val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True)
+        self.log(
+            "val/acc_best", self.val_acc_best.compute(), sync_dist=True, prog_bar=True
+        )
         fig, axes = plt.subplots(4, 3)
         x, y = self.last_val_step["batch"]
         preds = self.last_val_step["preds"]
         for i in range(4):
-            axes[i, 0].imshow(x[i, 0], cmap='gray')
-            axes[i, 1].imshow(preds[i][0].detach().numpy(), cmap='gray')
-            axes[i, 2].imshow(y[i, 0], cmap='gray')
-            axes[i, 0].axis('off')
-            axes[i, 1].axis('off')
-            axes[i, 2].axis('off')
+            axes[i, 0].imshow(x[i, 0].cpu(), cmap="gray")
+            axes[i, 1].imshow(preds[i][0].cpu().detach().numpy(), cmap="gray")
+            axes[i, 2].imshow(y[i, 0].cpu(), cmap="gray")
+            axes[i, 0].axis("off")
+            axes[i, 1].axis("off")
+            axes[i, 2].axis("off")
         fig.tight_layout()
         # log image
-        self.logger.experiment.add_figure("val/predictions", fig, global_step=self.current_epoch)
+        self.logger.experiment.add_figure(
+            "val/predictions", fig, global_step=self.current_epoch
+        )
 
-    def test_step(self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int) -> None:
+    def test_step(
+        self, batch: Tuple[torch.Tensor, torch.Tensor], batch_idx: int
+    ) -> None:
         """Perform a single test step on a batch of data from the test set.
 
         :param batch: A batch of data (a tuple) containing the input tensor of images and target
@@ -164,9 +176,10 @@ class BinaryGridLightningModule(LightningModule):
         # update and log metrics
         self.test_loss(loss)
         self.test_acc(preds, targets)
-        self.log("test/loss", self.test_loss, on_step=False, on_epoch=True, prog_bar=True)
+        self.log(
+            "test/loss", self.test_loss, on_step=False, on_epoch=True, prog_bar=True
+        )
         self.log("test/acc", self.test_acc, on_step=False, on_epoch=True, prog_bar=True)
-
 
     def setup(self, stage: str) -> None:
         if self.hparams.compile and stage == "fit":
