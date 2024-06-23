@@ -1,0 +1,53 @@
+# @package _global_
+
+# to execute this experiment run:
+# python train.py experiment=example
+
+defaults:
+  - override /data: toy_mirror_4x4
+  - override /model: mlp
+  - override /callbacks: grokking
+  - override /trainer: default
+
+# all parameters below will be merged with parameters from default configurations set above
+# this allows you to overwrite only specified parameters
+
+tags: ["toy_mirror"]
+
+seed: 0
+
+trainer:
+  min_epochs: 2
+  max_epochs: 400
+
+model:
+  optimizer:
+    # grokking paper config
+    _target_: torch.optim.SGD
+    _partial_: true
+    lr: 0.001
+  scheduler:
+    _target_: src.utils.schedulers.LinearWarmupScheduler
+    _partial_: true
+    warmup_steps: 10
+  net:
+    img_width: 4
+    img_height: 4
+    hidden_dim: 1000
+    num_layers: 10
+  lr_scheduler_interval: "step"
+
+
+
+data:
+  batch_size: 64
+
+# deactivate logger for small experiments
+# logger:
+#   wandb:
+#     tags: ${tags}
+#     group: "tests"
+#     project: "pit-experiments"
+#     entity: "iexai"
+#   aim:
+#     experiment: "pit-experiments/tests"
