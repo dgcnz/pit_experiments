@@ -5,15 +5,27 @@ from torch.utils.data import random_split, DataLoader, Dataset
 from typing import Callable
 
 
-# TODO: Make sure that all samples are unique.
+def random_input_fn(num_samples, width, height):
+    return torch.randint(0, 2, (num_samples, width, height))
+
+
 class ToyDataset(Dataset):
     # target_fn outputs torch tensor
-    def __init__(self, target_fn: Callable[[Tensor], Tensor], num_samples=10000, width=8, height=8):
+    def __init__(
+        self,
+        target_fn: Callable[[Tensor], Tensor],
+        input_fn: Callable[[int, int, int], Tensor],
+        num_samples=10000,
+        width=8,
+        height=8,
+    ):
         self.width = width
         self.height = height
 
-        self.inputs = torch.randint(0, 2, (num_samples, self.width, self.height))
+        self.inputs = input_fn(num_samples, width, height)
+
         self.targets = target_fn(self.inputs)
+
         self.inputs = self.inputs.unsqueeze(1).float()
         self.targets = self.targets.unsqueeze(1).float()
 
@@ -28,6 +40,7 @@ class ToyDataModule(L.LightningDataModule):
     def __init__(
         self,
         target_fn,
+        input_fn=random_input_fn,
         batch_size: int = 32,
         num_samples: int = 10000,
         width: int = 8,
@@ -36,6 +49,7 @@ class ToyDataModule(L.LightningDataModule):
         super().__init__()
         self.batch_size = batch_size
         self.target_fn = target_fn
+        self.input_fn = input_fn
         self.num_samples = num_samples
         self.width = width
         self.height = height
@@ -43,6 +57,7 @@ class ToyDataModule(L.LightningDataModule):
     def setup(self, stage: str):
         self.full = ToyDataset(
             target_fn=self.target_fn,
+            input_fn=self.input_fn,
             num_samples=self.num_samples,
             width=self.width,
             height=self.height,
