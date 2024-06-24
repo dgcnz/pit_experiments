@@ -192,8 +192,9 @@ class BinaryGridLightningModule(LightningModule):
         fig, axes = plt.subplots(4, 3)
         for i in range(4):
             axes[i, 0].imshow(x[i, 0].cpu(), cmap="gray")
-            axes[i, 1].imshow(preds[i][0].cpu().detach().numpy(), cmap="gray")
-            axes[i, 2].imshow(y[i, 0].cpu(), cmap="gray")
+            if len(preds.shape) > 2:  # image predictions, not classification
+                axes[i, 1].imshow(preds[i][0].cpu().detach().numpy(), cmap="gray")
+                axes[i, 2].imshow(y[i, 0].cpu(), cmap="gray")
             # title
             axes[i, 0].set_title("Input")
             axes[i, 1].set_title("Prediction")

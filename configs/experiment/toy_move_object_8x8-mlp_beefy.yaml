@@ -5,8 +5,8 @@
 
 defaults:
   - override /data: toy_move_object
-  - override /model: pit_serghei_grid
-  - override /callbacks: [grokking] #, early_stopping]
+  - override /model: mlp
+  - override /callbacks: grokking
   - override /trainer: default
 
 # all parameters below will be merged with parameters from default configurations set above
@@ -22,9 +22,11 @@ trainer:
 
 model:
   optimizer:
+    # grokking paper config
     _target_: torch.optim.SGD
     _partial_: true
-    lr: 0.3
+    lr: 1
+    weight_decay: 0.1
   scheduler:
     _target_: src.utils.schedulers.LinearWarmupScheduler
     _partial_: true
@@ -32,14 +34,20 @@ model:
   net:
     img_width: 8
     img_height: 8
-    num_blocks: 2
-    embed_dim: 16
-    nhead: 8
-    dim_feedforward: 128
+    hidden_dim: 128
+    num_layers: 4
   lr_scheduler_interval: "step"
 
 data:
   batch_size: 64
-  num_samples: 10000
   width: 8
   height: 8
+# deactivate logger for small experiments
+# logger:
+#   wandb:
+#     tags: ${tags}
+#     group: "tests"
+#     project: "pit-experiments"
+#     entity: "iexai"
+#   aim:
+#     experiment: "pit-experiments/tests"
