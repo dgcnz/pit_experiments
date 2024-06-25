@@ -5,7 +5,7 @@
 
 defaults:
   - override /data: toy_move_object
-  - override /model: pit_serghei_grid
+  - override /model: pit_serghei_grid_enc_dec
   - override /callbacks: [grokking] #, early_stopping]
   - override /trainer: default
 
@@ -24,7 +24,7 @@ model:
   optimizer:
     _target_: torch.optim.SGD
     _partial_: true
-    lr: 0.3
+    lr: 0.1
   scheduler:
     _target_: src.utils.schedulers.LinearWarmupScheduler
     _partial_: true
@@ -32,7 +32,7 @@ model:
   net:
     img_width: 8
     img_height: 8
-    num_blocks: 2
+    num_blocks: 8
     embed_dim: 16
     nhead: 8
     dim_feedforward: 128

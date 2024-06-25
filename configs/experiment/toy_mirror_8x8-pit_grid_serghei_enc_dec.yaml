@@ -4,15 +4,15 @@
 # python train.py experiment=example
 
 defaults:
-  - override /data: toy_move_object
-  - override /model: pit_serghei_grid
+  - override /data: toy_mirror
+  - override /model: pit_serghei_grid_enc_dec
   - override /callbacks: [grokking] #, early_stopping]
   - override /trainer: default
 
 # all parameters below will be merged with parameters from default configurations set above
 # this allows you to overwrite only specified parameters
 
-tags: ["toy_move_object"]
+tags: ["toy_mirror"]
 
 seed: 0
 
@@ -24,7 +24,7 @@ model:
   optimizer:
     _target_: torch.optim.SGD
     _partial_: true
-    lr: 0.3
+    lr: 0.1
   scheduler:
     _target_: src.utils.schedulers.LinearWarmupScheduler
     _partial_: true
@@ -33,9 +33,9 @@ model:
     img_width: 8
     img_height: 8
     num_blocks: 2
-    embed_dim: 16
-    nhead: 8
-    dim_feedforward: 128
+    embed_dim: 8
+    nhead: 2
+    dim_feedforward: 32
   lr_scheduler_interval: "step"
 
 data:

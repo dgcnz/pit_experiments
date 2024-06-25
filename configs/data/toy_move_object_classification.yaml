@@ -1,0 +1,11 @@
+_target_: src.data.toy_classification_datamodule.ToyDataModuleClassification
+batch_size: 32 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+num_samples: 10000
+width: 8
+height: 8
+target_fn:
+  _target_: src.utils.data_functions.move_object.move_object_target_fn
+  _partial_: true
+input_fn:
+  _target_: src.utils.data_functions.move_object.move_object_input_fn
+  _partial_: true

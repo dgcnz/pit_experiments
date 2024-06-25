@@ -3,7 +3,7 @@ from typing import Any, Dict, Tuple
 import torch
 from lightning import LightningModule
 from torchmetrics import MaxMetric, MeanMetric
-from torchmetrics.classification.accuracy import BinaryAccuracy
+from torchmetrics.classification.accuracy import MulticlassAccuracy
 import matplotlib.pyplot as plt
 from src.utils.grokfast import gradfilter_ma, gradfilter_ema
 from collections import namedtuple
@@ -12,13 +12,14 @@ from typing import Optional
 GrokFastParams = namedtuple("GrokFastParams", ["alpha", "lamb"])
 
 
-class BinaryGridLightningModule(LightningModule):
+class MultiClassClassificationLightningModule(LightningModule):
     def __init__(
         self,
         net: torch.nn.Module,
         optimizer: torch.optim.Optimizer,
         scheduler: torch.optim.lr_scheduler,
         compile: bool,
+        num_classes: int = 2,
         lr_scheduler_interval: str = "epoch",
         grokfast_params: Optional[GrokFastParams] = None,
     ) -> None:
@@ -38,16 +39,16 @@ class BinaryGridLightningModule(LightningModule):
         self.net = net
 
         # loss function
-        self.criterion = torch.nn.BCEWithLogitsLoss()
+        self.criterion = torch.nn.CrossEntropyLoss()
 
         # metric objects for calculating and averaging accuracy across batches
         # self.train_acc = Accuracy(task="multiclass", num_classes=num_classes)
         # self.val_acc = Accuracy(task="multiclass", num_classes=num_classes)
         # self.test_acc = Accuracy(task="multiclass", num_classes=num_classes)
         # input image is (N, N)
-        self.train_acc = BinaryAccuracy()
-        self.val_acc = BinaryAccuracy()
-        self.test_acc = BinaryAccuracy()
+        self.train_acc = MulticlassAccuracy(num_classes=num_classes)
+        self.val_acc = MulticlassAccuracy(num_classes=num_classes)
+        self.test_acc = MulticlassAccuracy(num_classes=num_classes)
 
         # for averaging loss across batches
         self.train_loss = MeanMetric()
