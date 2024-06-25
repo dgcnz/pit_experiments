@@ -1,0 +1,8 @@
+_target_: src.data.toy_simple_classification_datamodule.ToyDataModuleSimpleClassification
+batch_size: 32 # Needs to be divisible by the number of devices (e.g., if in a distributed setup)
+num_samples: 10000
+width: 8
+height: 8
+batch_fn:
+  _target_: src.utils.data_functions.edge_detection.edge_detection_batch_fn
+  _partial_: true

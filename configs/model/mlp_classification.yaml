@@ -2,13 +2,11 @@ _target_: src.models.binary_grid_module.BinaryGridLightningModule
 # _target_: src.models.mc_classification_module.MultiClassClassificationLightningModule
 
 net:
-  _target_: src.models.components.toy_vit_classification.ToyViTClassification
+  _target_: src.models.components.toy_mlp_classification.ToyMLPClassification
   img_width: null
   img_height: null
-  num_blocks: null
-  embed_dim: null
-  nhead: null
-  dim_feedforward: null
+  hidden_dim: null
+  num_layers: null
   num_classes: null
 
 optimizer: null
